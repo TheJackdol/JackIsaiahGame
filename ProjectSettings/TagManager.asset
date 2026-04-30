@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 3
+  tags:
+  - Unit
+  - Enemy
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Ground
+    uniqueID: 4062409631
+    locked: 0
+  - name: Units
+    uniqueID: 4138657123
+    locked: 0
+  - name: Buildings
+    uniqueID: 1791298647
+    locked: 0
+  - name: Effects
+    uniqueID: 3120805075
+    locked: 0
+  - name: UI
+    uniqueID: 2448668335
+    locked: 0
+  m_RenderingLayers:
+  - Default
