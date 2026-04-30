@@ -100,25 +100,34 @@ public class RTSController : MonoBehaviour
     }
 
     void HandleAttackInput()
+{
+    if (Input.GetKeyDown(KeyCode.E) && selectedUnits.Count > 0)
     {
-        if (Input.GetKeyDown(KeyCode.E) && selectedUnits.Count > 0)
-        {
-            Vector2 mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+        Vector2 mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
+        RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
 
-            if (hit.collider != null && hit.collider.CompareTag("Enemy"))
+        if (hit.collider != null)
+        {
+            Health health = hit.collider.GetComponent<Health>();
+
+            if (health != null && !hit.collider.CompareTag("Unit"))
             {
                 foreach (UnitMovement unit in selectedUnits)
                 {
                     unit.Attack(hit.collider.gameObject);
                 }
 
-                Debug.Log("Attacking enemy!");
+                Debug.Log("Attacking target!");
             }
             else
             {
-                Debug.Log("No enemy under cursor");
+                Debug.Log("Target has no Health or is your own unit.");
             }
         }
+        else
+        {
+            Debug.Log("No target under cursor.");
+        }
     }
+}
 }

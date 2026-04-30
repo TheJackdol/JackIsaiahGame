@@ -3,12 +3,12 @@ using UnityEngine;
 public class UnitMovement : MonoBehaviour
 {
     public float moveSpeed = 4f;
-    public float attackRange = 1.5f;
+    public float attackRange = 2.5f;
     public float damage = 10f;
     public float attackCooldown = 1f;
+    public float detectionRange = 4f;
 
     private bool attackMove = false;
-
     private Vector2 targetPosition;
     private bool isMoving;
 
@@ -21,6 +21,25 @@ public class UnitMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         targetPosition = rb.position;
+    }
+
+    void Update()
+    {
+        if (attackMove && targetEnemy == null)
+        {
+            GameObject enemy = FindClosestEnemy();
+
+            if (enemy != null)
+            {
+                float dist = Vector2.Distance(rb.position, enemy.transform.position);
+
+                if (dist <= detectionRange)
+                {
+                    targetEnemy = enemy;
+                    isMoving = false;
+                }
+            }
+        }
     }
 
     void FixedUpdate()
@@ -40,7 +59,7 @@ public class UnitMovement : MonoBehaviour
         Vector2 newPos = Vector2.MoveTowards(
             rb.position,
             targetPosition,
-            moveSpeed * Time.deltaTime
+            moveSpeed * Time.fixedDeltaTime
         );
 
         rb.MovePosition(newPos);
@@ -48,6 +67,7 @@ public class UnitMovement : MonoBehaviour
         if (Vector2.Distance(rb.position, targetPosition) < 0.05f)
         {
             isMoving = false;
+            attackMove = false;
         }
     }
 
@@ -55,14 +75,22 @@ public class UnitMovement : MonoBehaviour
     {
         if (targetEnemy == null) return;
 
+        Health enemyHealth = targetEnemy.GetComponent<Health>();
+
+        if (enemyHealth == null)
+        {
+            targetEnemy = null;
+            return;
+        }
+
         float dist = Vector2.Distance(rb.position, targetEnemy.transform.position);
 
-        if (dist > attackRange + .02f)
+        if (dist > attackRange)
         {
             Vector2 newPos = Vector2.MoveTowards(
                 rb.position,
                 targetEnemy.transform.position,
-                moveSpeed * Time.deltaTime
+                moveSpeed * Time.fixedDeltaTime
             );
 
             rb.MovePosition(newPos);
@@ -71,48 +99,46 @@ public class UnitMovement : MonoBehaviour
         {
             if (Time.time > lastAttackTime + attackCooldown)
             {
-                Health enemyHealth = targetEnemy.GetComponent<Health>();
-
-                if (enemyHealth != null)
-                {
-                    enemyHealth.TakeDamage(damage);
-                    Debug.Log("Attacking enemy! HP: " + enemyHealth.hp);
-                }
-
+                enemyHealth.TakeDamage(damage);
+                Debug.Log("Attacking target! HP: " + enemyHealth.hp);
                 lastAttackTime = Time.time;
             }
         }
     }
 
-    
     public void MoveTo(Vector2 pos, bool isAttackMove = false)
-{
-    targetPosition = pos;
-    isMoving = true;
-    targetEnemy = null;
-    attackMove = isAttackMove;
-}
+    {
+        targetPosition = pos;
+        isMoving = true;
+        targetEnemy = null;
+        attackMove = isAttackMove;
+    }
 
     public void Attack(GameObject enemy)
     {
         targetEnemy = enemy;
         isMoving = false;
+        attackMove = false;
     }
+
     public void Stop()
-{
-    isMoving = false;
-    targetEnemy = null;
-}
-GameObject FindClosestEnemy()
+    {
+        isMoving = false;
+        targetEnemy = null;
+        attackMove = false;
+    }
+
+    GameObject FindClosestEnemy()
 {
     GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+    GameObject[] enemyBases = GameObject.FindGameObjectsWithTag("EnemyBase");
 
     GameObject closest = null;
     float minDist = Mathf.Infinity;
 
     foreach (GameObject e in enemies)
     {
-        float dist = Vector2.Distance(transform.position, e.transform.position);
+        float dist = Vector2.Distance(rb.position, e.transform.position);
 
         if (dist < minDist)
         {
@@ -121,35 +147,17 @@ GameObject FindClosestEnemy()
         }
     }
 
-    return closest;
-}
-void Update()
-{
-    // 🔥 STEP 3 GOES HERE (VERY TOP)
-    if (attackMove && targetEnemy == null)
+    foreach (GameObject b in enemyBases)
     {
-        GameObject enemy = FindClosestEnemy();
+        float dist = Vector2.Distance(rb.position, b.transform.position);
 
-        if (enemy != null)
+        if (dist < minDist)
         {
-            float dist = Vector2.Distance(transform.position, enemy.transform.position);
-
-            if (dist < attackRange + 1f)
-            {
-                targetEnemy = enemy;
-                isMoving = false;
-            }
+            minDist = dist;
+            closest = b;
         }
     }
 
-    // 🧠 EXISTING LOGIC (leave this as is)
-    if (targetEnemy != null)
-    {
-        HandleEnemyChaseAndAttack();
-    }
-    else if (isMoving)
-    {
-        MoveToTarget();
-    }
+    return closest;
 }
 }

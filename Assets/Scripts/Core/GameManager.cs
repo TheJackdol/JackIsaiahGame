@@ -2,13 +2,21 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance;
+    public GameObject playerBase;
+    public GameObject enemyBase;
 
-    void Awake()
+    void Update()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
+        if (enemyBase == null)
+        {
+            Debug.Log("YOU WIN!");
+            Time.timeScale = 0f;
+        }
+
+        if (playerBase == null)
+        {
+            Debug.Log("YOU LOSE!");
+            Time.timeScale = 0f;
+        }
     }
 }
