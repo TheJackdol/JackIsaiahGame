@@ -4,16 +4,38 @@ using UnityEngine;
 public class RTSController : MonoBehaviour
 {
     public Camera cam;
+    private bool isAttackMoveCommand = false;
+    private List<UnitSelection> selectedSelections = new List<UnitSelection>();
     private List<UnitMovement> selectedUnits = new List<UnitMovement>();
 
     private Vector2 startPos;
     private Vector2 endPos;
+    
+
+    void HandleStopInput()
+{
+    if (Input.GetKeyDown(KeyCode.Q))
+    {
+        foreach (UnitMovement unit in selectedUnits)
+        {
+            unit.Stop();
+        }
+
+        Debug.Log("Stopped units with Q");
+    }
+}
+
 
     void Update()
     {
         HandleSelectionBox();
         HandleMovement();
         HandleAttackInput();
+        HandleStopInput();
+        if (Input.GetKeyDown(KeyCode.Z))
+{
+    isAttackMoveCommand = true;
+}
     }
 
     void HandleSelectionBox()
@@ -31,29 +53,37 @@ public class RTSController : MonoBehaviour
     }
 
     void SelectUnits()
+{
+    // Deselect old units
+    foreach (UnitSelection sel in selectedSelections)
     {
-        selectedUnits.Clear();
+        sel.Deselect();
+    }
 
-        Vector2 min = Vector2.Min(startPos, endPos);
-        Vector2 max = Vector2.Max(startPos, endPos);
+    selectedSelections.Clear();
+    selectedUnits.Clear();
 
-        Collider2D[] hits = Physics2D.OverlapAreaAll(min, max);
+    Vector2 min = Vector2.Min(startPos, endPos);
+    Vector2 max = Vector2.Max(startPos, endPos);
 
-        foreach (Collider2D hit in hits)
+    Collider2D[] hits = Physics2D.OverlapAreaAll(min, max);
+
+    foreach (Collider2D hit in hits)
+    {
+        if (hit.CompareTag("Unit"))
         {
-            if (hit.CompareTag("Unit"))
-            {
-                UnitMovement unit = hit.GetComponent<UnitMovement>();
+            UnitMovement unit = hit.GetComponent<UnitMovement>();
+            UnitSelection selection = hit.GetComponent<UnitSelection>();
 
-                if (unit != null)
-                {
-                    selectedUnits.Add(unit);
-                }
+            if (unit != null && selection != null)
+            {
+                selectedUnits.Add(unit);
+                selectedSelections.Add(selection);
+                selection.Select();
             }
         }
-
-        Debug.Log("Selected units: " + selectedUnits.Count);
     }
+}
 
     void HandleMovement()
     {
@@ -63,7 +93,8 @@ public class RTSController : MonoBehaviour
 
             foreach (UnitMovement unit in selectedUnits)
             {
-                unit.MoveTo(target);
+                unit.MoveTo(target, isAttackMoveCommand);
+                isAttackMoveCommand = false;
             }
         }
     }

@@ -7,6 +7,8 @@ public class UnitMovement : MonoBehaviour
     public float damage = 10f;
     public float attackCooldown = 1f;
 
+    private bool attackMove = false;
+
     private Vector2 targetPosition;
     private bool isMoving;
 
@@ -21,7 +23,7 @@ public class UnitMovement : MonoBehaviour
         targetPosition = rb.position;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (targetEnemy != null)
         {
@@ -55,7 +57,7 @@ public class UnitMovement : MonoBehaviour
 
         float dist = Vector2.Distance(rb.position, targetEnemy.transform.position);
 
-        if (dist > attackRange)
+        if (dist > attackRange + .02f)
         {
             Vector2 newPos = Vector2.MoveTowards(
                 rb.position,
@@ -82,16 +84,72 @@ public class UnitMovement : MonoBehaviour
         }
     }
 
-    public void MoveTo(Vector2 pos)
-    {
-        targetPosition = pos;
-        isMoving = true;
-        targetEnemy = null;
-    }
+    
+    public void MoveTo(Vector2 pos, bool isAttackMove = false)
+{
+    targetPosition = pos;
+    isMoving = true;
+    targetEnemy = null;
+    attackMove = isAttackMove;
+}
 
     public void Attack(GameObject enemy)
     {
         targetEnemy = enemy;
         isMoving = false;
     }
+    public void Stop()
+{
+    isMoving = false;
+    targetEnemy = null;
+}
+GameObject FindClosestEnemy()
+{
+    GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+    GameObject closest = null;
+    float minDist = Mathf.Infinity;
+
+    foreach (GameObject e in enemies)
+    {
+        float dist = Vector2.Distance(transform.position, e.transform.position);
+
+        if (dist < minDist)
+        {
+            minDist = dist;
+            closest = e;
+        }
+    }
+
+    return closest;
+}
+void Update()
+{
+    // 🔥 STEP 3 GOES HERE (VERY TOP)
+    if (attackMove && targetEnemy == null)
+    {
+        GameObject enemy = FindClosestEnemy();
+
+        if (enemy != null)
+        {
+            float dist = Vector2.Distance(transform.position, enemy.transform.position);
+
+            if (dist < attackRange + 1f)
+            {
+                targetEnemy = enemy;
+                isMoving = false;
+            }
+        }
+    }
+
+    // 🧠 EXISTING LOGIC (leave this as is)
+    if (targetEnemy != null)
+    {
+        HandleEnemyChaseAndAttack();
+    }
+    else if (isMoving)
+    {
+        MoveToTarget();
+    }
+}
 }
