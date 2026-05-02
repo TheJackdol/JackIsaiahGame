@@ -91,11 +91,18 @@ public class RTSController : MonoBehaviour
         {
             Vector2 target = cam.ScreenToWorldPoint(Input.mousePosition);
 
-            foreach (UnitMovement unit in selectedUnits)
-            {
-                unit.MoveTo(target, isAttackMoveCommand);
-                isAttackMoveCommand = false;
-            }
+            int i = 0;
+
+foreach (UnitMovement unit in selectedUnits)
+{
+    Vector2 offset = new Vector2(
+        (i % 3) * 0.8f,
+        (i / 3) * 0.8f
+    );
+
+    unit.MoveTo(target + offset);
+    i++;
+}
         }
     }
 
@@ -104,30 +111,39 @@ public class RTSController : MonoBehaviour
     if (Input.GetKeyDown(KeyCode.E) && selectedUnits.Count > 0)
     {
         Vector2 mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
 
-        if (hit.collider != null)
+        Collider2D[] hits = Physics2D.OverlapCircleAll(mousePos, 1.5f);
+
+        GameObject target = null;
+
+        foreach (Collider2D hit in hits)
         {
-            Health health = hit.collider.GetComponent<Health>();
+            Health health = hit.GetComponent<Health>();
 
-            if (health != null && !hit.collider.CompareTag("Unit"))
-            {
-                foreach (UnitMovement unit in selectedUnits)
-                {
-                    unit.Attack(hit.collider.gameObject);
-                }
+            if (health != null && (hit.CompareTag("Enemy") || hit.CompareTag("EnemyBase")))
+{
+    foreach (UnitMovement unit in selectedUnits)
+    {
+        unit.Attack(hit.gameObject);
+    }
 
-                Debug.Log("Attacking target!");
-            }
-            else
+    Debug.Log("Attacking enemy target: " + hit.name);
+}
+        }
+
+        if (target != null)
+        {
+            foreach (UnitMovement unit in selectedUnits)
             {
-                Debug.Log("Target has no Health or is your own unit.");
+                unit.Attack(target);
             }
+
+            Debug.Log("Attacking: " + target.name);
         }
         else
         {
-            Debug.Log("No target under cursor.");
+            Debug.Log("No attackable target near mouse.");
         }
     }
 }
-}
+    }

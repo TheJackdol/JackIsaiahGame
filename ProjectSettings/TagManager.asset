@@ -8,6 +8,7 @@ TagManager:
   - Enemy
   - PlayerBase
   - EnemyBase
+  - Obstacle
   layers:
   - Default
   - TransparentFX

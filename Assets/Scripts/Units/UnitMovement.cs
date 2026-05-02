@@ -3,7 +3,7 @@ using UnityEngine;
 public class UnitMovement : MonoBehaviour
 {
     public float moveSpeed = 4f;
-    public float attackRange = 2.5f;
+    public float attackRange = 3f;
     public float damage = 10f;
     public float attackCooldown = 1f;
     public float detectionRange = 4f;
@@ -52,6 +52,11 @@ public class UnitMovement : MonoBehaviour
         {
             MoveToTarget();
         }
+        if (!isMoving && targetEnemy == null)
+{
+    rb.linearVelocity = Vector2.zero;
+    rb.angularVelocity = 0f;
+}
     }
 
     void MoveToTarget()
@@ -64,11 +69,13 @@ public class UnitMovement : MonoBehaviour
 
         rb.MovePosition(newPos);
 
-        if (Vector2.Distance(rb.position, targetPosition) < 0.05f)
-        {
-            isMoving = false;
-            attackMove = false;
-        }
+        if (Vector2.Distance(rb.position, targetPosition) < 0.3f)
+{
+    isMoving = false;
+    attackMove = false;
+    rb.linearVelocity = Vector2.zero;
+    rb.angularVelocity = 0f;
+}
     }
 
     void HandleEnemyChaseAndAttack()
@@ -122,11 +129,13 @@ public class UnitMovement : MonoBehaviour
     }
 
     public void Stop()
-    {
-        isMoving = false;
-        targetEnemy = null;
-        attackMove = false;
-    }
+{
+    isMoving = false;
+    targetEnemy = null;
+    attackMove = false;
+    rb.linearVelocity = Vector2.zero;
+    rb.angularVelocity = 0f;
+}
 
     GameObject FindClosestEnemy()
 {

@@ -3,7 +3,7 @@ using UnityEngine;
 public class EnemyAI : MonoBehaviour
 {
     public float moveSpeed = 3f;
-    public float attackRange = 1.5f;
+    public float attackRange = 2.5f;
     public float damage = 10f;
     public float attackCooldown = 1f;
 
@@ -12,16 +12,16 @@ public class EnemyAI : MonoBehaviour
 
     void Update()
     {
-        FindClosestPlayerUnit();
+        target = FindClosestTarget();
 
         if (target == null)
             return;
 
-        float distance = Vector3.Distance(transform.position, target.transform.position);
+        float distance = Vector2.Distance(transform.position, target.transform.position);
 
         if (distance > attackRange)
         {
-            transform.position = Vector3.MoveTowards(
+            transform.position = Vector2.MoveTowards(
                 transform.position,
                 target.transform.position,
                 moveSpeed * Time.deltaTime
@@ -33,39 +33,47 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    void FindClosestPlayerUnit()
+    GameObject FindClosestTarget()
     {
-        GameObject[] playerUnits = GameObject.FindGameObjectsWithTag("Unit");
+        Health[] allTargets = FindObjectsOfType<Health>();
 
+        GameObject closest = null;
         float closestDistance = Mathf.Infinity;
-        GameObject closestUnit = null;
 
-        foreach (GameObject unit in playerUnits)
+        foreach (Health h in allTargets)
         {
-            float distance = Vector3.Distance(transform.position, unit.transform.position);
+            GameObject obj = h.gameObject;
+
+            if (obj == gameObject) continue;
+            if (obj.CompareTag("Enemy")) continue;
+            if (obj.CompareTag("EnemyBase")) continue;
+
+            float distance = Vector2.Distance(transform.position, obj.transform.position);
 
             if (distance < closestDistance)
             {
                 closestDistance = distance;
-                closestUnit = unit;
+                closest = obj;
             }
         }
 
-        target = closestUnit;
+        return closest;
     }
 
     void AttackTarget()
     {
+        Health health = target.GetComponent<Health>();
+
+        if (health == null)
+        {
+            target = null;
+            return;
+        }
+
         if (Time.time > lastAttackTime + attackCooldown)
         {
-            Health health = target.GetComponent<Health>();
-
-            if (health != null)
-            {
-                health.TakeDamage(damage);
-                Debug.Log("Enemy attacking player! Player HP: " + health.hp);
-            }
-
+            health.TakeDamage(damage);
+            Debug.Log("Enemy attacking: " + target.name + " HP: " + health.hp);
             lastAttackTime = Time.time;
         }
     }
